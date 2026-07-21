@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="report.css">
+<style>
+  body{margin:0;background:#fff}
+  .rf-report .page{max-width:none;margin:0;border-radius:0;box-shadow:none}
+  /* the header logo + footer are stamped into reserved page margins by the server (pdf-lib),
+     so the in-content band/footer are not rendered here */
+  .rf-report .docHeader,.rf-report .docFooter{display:none}
+  /* content mode (default): hide the cover entirely so the content render is PURE content pages */
+  .rf-report .cover{display:none}
+  /* cover mode (?cover=1): show the cover full-bleed; the server keeps only its first page */
+  .coverfull .rf-report .cover{display:flex;flex-direction:column;justify-content:space-between;min-height:297mm}
+  .coverfull .rf-report .cover .coverBody{flex:1;display:flex;flex-direction:column;justify-content:center}
+  /* let long sections flow across pages instead of leaving big gaps */
+  .rf-report .rsec{break-inside:auto;page-break-inside:auto}
+  /* NOTE: no @page margin here — the puppeteer `margin` option is the single source of truth
+     for the reserved header/footer zones (0 for the full-bleed cover pass, 30/18mm for content). */
+  @page{size:A4}
+</style>
+</head>
+<body>
+<div id="out"></div>
+<script src="render.js"></script>
+<script>
+(async function(){
+  try{
+    const params = new URLSearchParams(location.search);
+    if (params.get("cover")) document.documentElement.classList.add("coverfull");
+    const token = params.get("t");
+    const resp = await fetch("/api/print-data/" + token);
+    if (!resp.ok) throw new Error("print data not found");
+    const { report } = await resp.json();
+    await RF_render(report, document.getElementById("out"));
+  }catch(e){
+    document.body.innerHTML = "<pre>PRINT ERROR: " + e.message + "</pre>";
+    window.__RF_READY = true; window.__RF_ERROR = e.message;
+  }
+})();
+</script>
+</body>
+</html>

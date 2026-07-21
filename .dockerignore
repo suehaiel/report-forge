@@ -1,0 +1,20 @@
+node_modules
+.git
+.gitignore
+.env
+.env.*
+data
+npm-debug.log*
+*.log
+# scratch/dev artifacts at the project root
+*.pdf
+/pg1.png
+/pg2.png
+/pg3.png
+/rep_pg*.png
+/ui_*.png
+/preview3.html
+/roundtrip_data.json
+/payload*.json
+Dockerfile
+.dockerignore

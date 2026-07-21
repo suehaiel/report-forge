@@ -1,0 +1,48 @@
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Runtime and user data
+data/
+uploads/
+generated/
+output/
+*.pdf
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Node
+node_modules/
+dist/
+build/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# dev/test scratch artifacts (not part of the app)
+*.log
+cookies.txt
+headers.txt
+one.json
+subs.json
+dl_headers.txt
+payload*.json
+roundtrip_data.json
+preview3.html
+pg*.png
+rep_pg*.png
+ui_*.png
+convert.js
+gen3.js
+shot.js
+uishot*.js
