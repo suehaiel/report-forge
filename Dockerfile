@@ -1,5 +1,5 @@
 # Production image for report-forge (Node + headless Chrome for PDF generation)
-FROM node:20-slim
+FROM node:22-slim
 
 # System libraries required by puppeteer's Chromium + fonts for emoji/text rendering
 RUN apt-get update && apt-get install -y --no-install-recommends \
