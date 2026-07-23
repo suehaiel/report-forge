@@ -70,7 +70,6 @@ window.RF_render = function(r, container){
         ${hasText(r.documentType)?`<div>${escT(r.documentType)}</div>`:""}
       </div>
     </div>
-    <div class="brandline"><span>RESWATER · Technical report</span><span>${dateStr}</span></div>
   </div>`;
 
   // ---- Ordered front matter: At a Glance → Description → Keywords → Images → Visual Documentation → Scientific Summary ----
@@ -90,12 +89,9 @@ window.RF_render = function(r, container){
     DOC.push(sec("Keywords","Keywords & Tags",
       `<div class="kwGrid">${keywords.map(k=>`<span class="kw">${escT(k)}</span>`).join("")}</div>`));
 
-  // 4. Visual Documentation
-  DOC.push(sec("Visual documentation","Visual Documentation",
-    `<p class="na">Reserved for figures, photographs and site imagery documenting the project.</p>`));
-
-  // 5. Images — a blank page (header/footer only) reserved for figures to be added later
-  DOC.push(`<div class="imgReserve"></div>`);
+  // 4. Visual Documentation — ONE dedicated page: the heading at the top, the rest of the
+  //    page left blank for images to be pasted in later. The next section starts on a new page.
+  DOC.push(`<div class="rsec imgPage"><div class="secKick">Visual documentation</div><h2 class="secT">Visual Documentation</h2><div class="secRule"></div></div>`);
 
   // 6. Scientific Summary
   if (hasText(r.executiveSummary))

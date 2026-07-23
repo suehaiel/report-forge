@@ -384,12 +384,11 @@ async function makeStamper(doc) {
   const logoW = mm(LOGO_W_MM), logoH = logo ? logoW * (logo.height / logo.width) : 0;
   // Stamp the fixed header (logo + rule) and footer (title · programme · Page X of Y) on one page.
   return function stamp(pg, { leftText, pageNo, total, cover }) {
+    // The cover (first) page carries NO header and NO footer — just the banner + content.
+    if (cover) return;
     const { width: W, height: H } = pg.getSize();
-    // The cover (first) page carries no logo header — the banner is flush to the top there.
-    if (!cover) {
-      if (logo) pg.drawImage(logo, { x: left, y: H - mm(LOGO_TOP_MM) - logoH, width: logoW, height: logoH });
-      pg.drawLine({ start: { x: left, y: H - mm(HEADER_RULE_MM) }, end: { x: W - left, y: H - mm(HEADER_RULE_MM) }, thickness: 0.6, color: line });
-    }
+    if (logo) pg.drawImage(logo, { x: left, y: H - mm(LOGO_TOP_MM) - logoH, width: logoW, height: logoH });
+    pg.drawLine({ start: { x: left, y: H - mm(HEADER_RULE_MM) }, end: { x: W - left, y: H - mm(HEADER_RULE_MM) }, thickness: 0.6, color: line });
     const size = 8, textY = mm(FOOTER_TEXT_MM);
     pg.drawLine({ start: { x: left, y: mm(FOOTER_RULE_MM) }, end: { x: W - left, y: mm(FOOTER_RULE_MM) }, thickness: 0.6, color: line });
     if (leftText) pg.drawText(leftText, { x: left, y: textY, size, font: fontB, color: ink });
