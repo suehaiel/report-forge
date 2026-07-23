@@ -90,12 +90,12 @@ window.RF_render = function(r, container){
     DOC.push(sec("Keywords","Keywords & Tags",
       `<div class="kwGrid">${keywords.map(k=>`<span class="kw">${escT(k)}</span>`).join("")}</div>`));
 
-  // 4. Images — a blank page (header/footer only) reserved for figures to be added later
-  DOC.push(`<div class="imgReserve"></div>`);
-
-  // 5. Visual Documentation
+  // 4. Visual Documentation
   DOC.push(sec("Visual documentation","Visual Documentation",
     `<p class="na">Reserved for figures, photographs and site imagery documenting the project.</p>`));
+
+  // 5. Images — a blank page (header/footer only) reserved for figures to be added later
+  DOC.push(`<div class="imgReserve"></div>`);
 
   // 6. Scientific Summary
   if (hasText(r.executiveSummary))
