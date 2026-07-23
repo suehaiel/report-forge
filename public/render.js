@@ -73,16 +73,16 @@ window.RF_render = function(r, container){
     <div class="brandline"><span>RESWATER · Technical report</span><span>${dateStr}</span></div>
   </div>`;
 
-  // ---- Ordered front matter: Description → At a Glance → Keywords → Images → Visual Documentation → Scientific Summary ----
-  // 1. Description
-  if (hasText(r.description))
-    DOC.push(sec("Description","Description",`<p>${escT(r.description)}</p>`));
-
-  // 2. At a Glance (Key Facts) — flows across pages; the heading stays glued to the first cards
+  // ---- Ordered front matter: At a Glance → Description → Keywords → Images → Visual Documentation → Scientific Summary ----
+  // 1. At a Glance (Key Facts) — flows across pages; the heading stays glued to the first cards
   const facts = (r.keyFacts||[]).filter(f=>hasText(f.value));
   if (facts.length)
     DOC.push(secAB("At a glance","Key Facts",
       `<div class="kpiGrid">${facts.map(f=>`<div class="kpi"><div class="v">${escT(f.value)}${hasText(f.unit)?" "+escT(f.unit):""}</div>${hasText(f.label)?`<div class="l">${escT(f.label)}</div>`:""}</div>`).join("")}</div>`));
+
+  // 2. Description
+  if (hasText(r.description))
+    DOC.push(sec("Description","Description",`<p>${escT(r.description)}</p>`));
 
   // 3. Keywords
   const keywords = (r.keywords||[]).filter(hasText);
