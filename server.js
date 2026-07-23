@@ -383,10 +383,13 @@ async function makeStamper(doc) {
   const left = mm(SIDE_MM);
   const logoW = mm(LOGO_W_MM), logoH = logo ? logoW * (logo.height / logo.width) : 0;
   // Stamp the fixed header (logo + rule) and footer (title · programme · Page X of Y) on one page.
-  return function stamp(pg, { leftText, pageNo, total }) {
+  return function stamp(pg, { leftText, pageNo, total, cover }) {
     const { width: W, height: H } = pg.getSize();
-    if (logo) pg.drawImage(logo, { x: left, y: H - mm(LOGO_TOP_MM) - logoH, width: logoW, height: logoH });
-    pg.drawLine({ start: { x: left, y: H - mm(HEADER_RULE_MM) }, end: { x: W - left, y: H - mm(HEADER_RULE_MM) }, thickness: 0.6, color: line });
+    // The cover (first) page carries no logo header — the banner is flush to the top there.
+    if (!cover) {
+      if (logo) pg.drawImage(logo, { x: left, y: H - mm(LOGO_TOP_MM) - logoH, width: logoW, height: logoH });
+      pg.drawLine({ start: { x: left, y: H - mm(HEADER_RULE_MM) }, end: { x: W - left, y: H - mm(HEADER_RULE_MM) }, thickness: 0.6, color: line });
+    }
     const size = 8, textY = mm(FOOTER_TEXT_MM);
     pg.drawLine({ start: { x: left, y: mm(FOOTER_RULE_MM) }, end: { x: W - left, y: mm(FOOTER_RULE_MM) }, thickness: 0.6, color: line });
     if (leftText) pg.drawText(leftText, { x: left, y: textY, size, font: fontB, color: ink });
@@ -404,7 +407,7 @@ async function addReportToDoc(out, meta, contentBuf, report) {
   const ft = footerTexts(report);
   const contentDoc = await PDFDocument.load(contentBuf);
   const cps = await out.copyPages(contentDoc, contentDoc.getPageIndices());
-  cps.forEach(p => { out.addPage(p); meta.push({ content: true, leftText: ft.leftText }); });
+  cps.forEach((p, idx) => { out.addPage(p); meta.push({ content: true, cover: idx === 0, leftText: ft.leftText }); });
 }
 
 // Stamp every content page across the document with continuous page numbers.
@@ -414,7 +417,7 @@ async function stampDoc(out, meta) {
   const total = pages.length;
   for (let i = 0; i < pages.length; i++) {
     const m = meta[i];
-    if (m && m.content) stamp(pages[i], { leftText: m.leftText, pageNo: i + 1, total });
+    if (m && m.content) stamp(pages[i], { leftText: m.leftText, pageNo: i + 1, total, cover: m.cover });
   }
 }
 
@@ -433,7 +436,9 @@ async function renderContent(browser, cleanReport) {
     const err = await page.evaluate(() => window.__RF_ERROR || null);
     if (err) throw new Error(err);
     await new Promise(r => setTimeout(r, 350));
-    return await page.pdf({ format: "A4", printBackground: true, preferCSSPageSize: false, margin: { top: `${HEADER_MARGIN_MM}mm`, bottom: `${FOOTER_MARGIN_MM}mm`, left: "0mm", right: "0mm" } });
+    // Margins come from the @page rules in print.html (per-page: first page has no top
+    // reserve so the cover banner is flush to the top). preferCSSPageSize honours them.
+    return await page.pdf({ printBackground: true, preferCSSPageSize: true });
   } finally {
     printJobs.delete(token);
     if (page) await page.close().catch(() => {});

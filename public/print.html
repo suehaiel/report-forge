@@ -18,9 +18,12 @@
   .rf-report .docHeader,.rf-report .docFooter{display:none}
   /* let long sections flow across pages instead of leaving big gaps */
   .rf-report .rsec{break-inside:auto;page-break-inside:auto}
-  /* NOTE: no @page margin here — the puppeteer `margin` option is the single source of truth
-     for the reserved header/footer zones (0 for the full-bleed cover pass, 30/18mm for content). */
-  @page{size:A4}
+  /* Page margins reserve the header (top) + footer (bottom) zones that the server stamps into.
+     These MUST match HEADER_MARGIN_MM / FOOTER_MARGIN_MM in server.js.
+     The FIRST page (cover) has no top reserve: the cover banner sits flush at the very top,
+     and the server skips the logo header on it. */
+  @page{size:A4;margin:30mm 0 18mm 0}
+  @page:first{margin-top:0}
 </style>
 </head>
 <body>
