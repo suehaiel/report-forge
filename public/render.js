@@ -42,7 +42,8 @@ const num = v => { const n = parseFloat(String(v).replace(/[, ]/g,"")); return i
 let liveCharts = [], liveMap = null;
 
 function secHtml(kick,title,inner,allowBreak){
-  return `<div class="rsec${allowBreak?" allowBreak":""}"><div class="secKick">${kick}</div><h2 class="secT">${title}</h2><div class="secRule"></div>${inner}</div>`;
+  // `kick` (the small uppercase label above the title) is intentionally not rendered.
+  return `<div class="rsec${allowBreak?" allowBreak":""}"><h2 class="secT">${title}</h2><div class="secRule"></div>${inner}</div>`;
 }
 
 /**
@@ -76,7 +77,7 @@ window.RF_render = function(r, container){
   // 1. At a Glance (Key Facts) — flows across pages; the heading stays glued to the first cards
   const facts = (r.keyFacts||[]).filter(f=>hasText(f.value));
   if (facts.length)
-    DOC.push(secAB("At a glance","Key Facts",
+    DOC.push(secAB("At a glance","At a Glance",
       `<div class="kpiGrid">${facts.map(f=>`<div class="kpi"><div class="v">${escT(f.value)}${hasText(f.unit)?" "+escT(f.unit):""}</div>${hasText(f.label)?`<div class="l">${escT(f.label)}</div>`:""}</div>`).join("")}</div>`));
 
   // 2. Description
@@ -91,7 +92,7 @@ window.RF_render = function(r, container){
 
   // 4. Visual Documentation — ONE dedicated page: the heading at the top, the rest of the
   //    page left blank for images to be pasted in later. The next section starts on a new page.
-  DOC.push(`<div class="rsec imgPage"><div class="secKick">Visual documentation</div><h2 class="secT">Visual Documentation</h2><div class="secRule"></div></div>`);
+  DOC.push(`<div class="rsec imgPage"><h2 class="secT">Visual Documentation</h2><div class="secRule"></div></div>`);
 
   // 6. Scientific Summary
   if (hasText(r.executiveSummary))
