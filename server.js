@@ -350,7 +350,8 @@ const mm = v => v * 72 / 25.4; // millimetres -> PDF points
 const HEADER_MARGIN_MM = 30;  // top reserved zone height (content begins below this)
 const FOOTER_MARGIN_MM = 18;  // bottom reserved zone height
 const SIDE_MM = 15;           // aligns with the content's internal side padding
-const LOGO_W_MM = 37;         // header logo width (aspect-preserved), a compact header mark
+const LOGO_W_MM = 32;         // header logo width (aspect-preserved); sized so the taller
+                              // Interreg/RESWATER lockup clears the header rule below it
 const LOGO_TOP_MM = 11;       // logo top edge from the page top
 const HEADER_RULE_MM = 26.5;  // separator line below the header (from page top)
 const FOOTER_RULE_MM = 12.5;  // separator line above the footer (from page bottom)

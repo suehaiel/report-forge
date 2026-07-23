@@ -209,7 +209,7 @@ window.RF_render = function(r, container){
 
   container.classList.add("rf-report");
   container.innerHTML = `<div class="page">
-    <div class="docHeader">${wm}<img src="/image/images.png" alt="RESWATER · Interreg NEXT MED"></div>
+    <div class="docHeader">${wm}<img src="/image/images.png?v=2" alt="RESWATER · Interreg NEXT MED"></div>
     ${cover}
     <div class="doc">${DOC.join("")}
       <div class="docFooter"><span>RESWATER · Interreg NEXT MED — Co-funded by the European Union</span><span>${dateStr}</span></div>
