@@ -18,18 +18,15 @@
 .rf-report .wm small{display:block;font-weight:600;letter-spacing:.2em;font-size:8.5px;color:var(--muted);text-transform:uppercase}
 .rf-report .docHeader img{height:28px}
 .rf-report .docFooter{margin-top:34px;padding-top:14px;border-top:1px solid var(--line);display:flex;justify-content:space-between;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-.rf-report .cover{background:linear-gradient(150deg,#0E1E4A 0%,#14275C 52%,#2E6BD6 100%);color:#eaf4f6;position:relative;overflow:hidden;padding:0 0 46px;page-break-after:always;break-after:page}
-.rf-report .coverHead{display:flex;align-items:center;justify-content:space-between;padding:22px 58px;border-bottom:1px solid rgba(255,255,255,.18)}
-.rf-report .coverHead .wm{color:#fff;font-size:16px}
-.rf-report .coverHead .wm span{color:#FFCE3A}
-.rf-report .coverHead .wm small{color:rgba(234,244,246,.6)}
-.rf-report .coverHead .logoBox{background:#fff;border-radius:8px;padding:6px 10px}
-.rf-report .coverHead img{height:30px;display:block}
-.rf-report .coverBody{padding:64px 58px 0}
-.rf-report .cat{display:inline-block;padding:6px 16px;border-radius:100px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);font-size:11px;letter-spacing:.2em;text-transform:uppercase;font-weight:700}
-.rf-report .cover h1{font-family:'Bricolage Grotesque','Hanken Grotesk',sans-serif;font-weight:400;font-size:38px;line-height:1.15;margin:20px 0 10px;color:#fff}
-.rf-report .cover .meta{font-size:13.5px;color:rgba(234,244,246,.8);line-height:1.8}
-.rf-report .brandline{margin:64px 58px 0;display:flex;justify-content:space-between;align-items:flex-end;border-top:1px solid rgba(255,255,255,.2);padding-top:16px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:rgba(234,244,246,.65)}
+/* Cover banner — a contained ~1/3-page block at the top of page 1; content flows below it */
+.rf-report .coverBanner{background:linear-gradient(150deg,#0E1E4A 0%,#14275C 52%,#2E6BD6 100%);color:#eaf4f6;padding:34px 58px 22px;min-height:62mm;display:flex;flex-direction:column;justify-content:space-between;break-inside:avoid;page-break-inside:avoid}
+.rf-report .coverBanner .coverBody{display:flex;flex-direction:column}
+.rf-report .cat{display:inline-block;align-self:flex-start;padding:6px 16px;border-radius:100px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);font-size:11px;letter-spacing:.2em;text-transform:uppercase;font-weight:700}
+.rf-report .coverBanner h1{font-family:'Bricolage Grotesque','Hanken Grotesk',sans-serif;font-weight:400;font-size:33px;line-height:1.15;margin:16px 0 10px;color:#fff}
+.rf-report .coverBanner .meta{font-size:13.5px;color:rgba(234,244,246,.85);line-height:1.8}
+.rf-report .coverBanner .brandline{margin-top:22px;display:flex;justify-content:space-between;align-items:flex-end;border-top:1px solid rgba(255,255,255,.2);padding-top:14px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:rgba(234,244,246,.7)}
+/* Blank page reserved for images (header/footer are stamped onto it by the server) */
+.rf-report .imgReserve{break-before:page;page-break-before:always;break-after:page;page-break-after:always;min-height:225mm}
 .rf-report .kpiGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .rf-report .kpi{border:1px solid var(--line);border-radius:14px;padding:16px;background:#f7fbf9;break-inside:avoid;page-break-inside:avoid}
 .rf-report .kpi .v{font-family:'Bricolage Grotesque','Hanken Grotesk',sans-serif;font-size:21px;color:var(--teal)}

@@ -367,14 +367,11 @@ function pdfSafe(s) {
     .replace(/[^\x20-\x7e]/g, "");                          // drop anything still outside ASCII printable
 }
 
-// Footer text for a report: left = project name (uppercased); centre = programme /
-// funding framework / document identifier, ONLY if reliably extracted (never invented).
+// Footer text for a report: left = project name (uppercased). The centre phrase was
+// removed by request — the footer now carries only the title (left) and page number (right).
 function footerTexts(r) {
   const leftText = pdfSafe(String(r.bestPracticeName || r.title || r.projectName || "").toUpperCase());
-  const fundingSources = (r.funding || []).map(f => f && f.source).filter(Boolean);
-  const centre = fundingSources.length ? fundingSources.join(" - ")
-    : (r.documentType && r.documentType.trim() ? r.documentType.trim() : "");
-  return { leftText, centreText: pdfSafe(centre) };
+  return { leftText };
 }
 
 // Build a reusable stamper bound to one output document (embeds logo + fonts once).
@@ -386,17 +383,13 @@ async function makeStamper(doc) {
   const left = mm(SIDE_MM);
   const logoW = mm(LOGO_W_MM), logoH = logo ? logoW * (logo.height / logo.width) : 0;
   // Stamp the fixed header (logo + rule) and footer (title · programme · Page X of Y) on one page.
-  return function stamp(pg, { leftText, centreText, pageNo, total }) {
+  return function stamp(pg, { leftText, pageNo, total }) {
     const { width: W, height: H } = pg.getSize();
     if (logo) pg.drawImage(logo, { x: left, y: H - mm(LOGO_TOP_MM) - logoH, width: logoW, height: logoH });
     pg.drawLine({ start: { x: left, y: H - mm(HEADER_RULE_MM) }, end: { x: W - left, y: H - mm(HEADER_RULE_MM) }, thickness: 0.6, color: line });
     const size = 8, textY = mm(FOOTER_TEXT_MM);
     pg.drawLine({ start: { x: left, y: mm(FOOTER_RULE_MM) }, end: { x: W - left, y: mm(FOOTER_RULE_MM) }, thickness: 0.6, color: line });
     if (leftText) pg.drawText(leftText, { x: left, y: textY, size, font: fontB, color: ink });
-    if (centreText) {
-      const tw = font.widthOfTextAtSize(centreText, size);
-      pg.drawText(centreText, { x: (W - tw) / 2, y: textY, size, font, color: muted });
-    }
     const pn = `Page ${pageNo} of ${total}`;
     const pw = font.widthOfTextAtSize(pn, size);
     pg.drawText(pn, { x: W - left - pw, y: textY, size, font, color: muted });
@@ -405,15 +398,13 @@ async function makeStamper(doc) {
 
 // Append one report (its full-bleed cover + zoned content pages) to `out`, recording
 // per-page metadata so header/footer can be stamped later with continuous numbering.
-async function addReportToDoc(out, meta, coverBuf, contentBuf, report) {
-  const coverDoc = await PDFDocument.load(coverBuf);
-  const [cp] = await out.copyPages(coverDoc, [0]);
-  out.addPage(cp);
-  meta.push({ content: false }); // cover page = separate layout, no header/footer
+async function addReportToDoc(out, meta, contentBuf, report) {
+  // The cover is now a banner at the top of page 1 (part of the content flow), so every
+  // page is a stamped content page — there is no longer a separate full-bleed cover page.
   const ft = footerTexts(report);
   const contentDoc = await PDFDocument.load(contentBuf);
   const cps = await out.copyPages(contentDoc, contentDoc.getPageIndices());
-  cps.forEach(p => { out.addPage(p); meta.push({ content: true, leftText: ft.leftText, centreText: ft.centreText }); });
+  cps.forEach(p => { out.addPage(p); meta.push({ content: true, leftText: ft.leftText }); });
 }
 
 // Stamp every content page across the document with continuous page numbers.
@@ -423,45 +414,37 @@ async function stampDoc(out, meta) {
   const total = pages.length;
   for (let i = 0; i < pages.length; i++) {
     const m = meta[i];
-    if (m && m.content) stamp(pages[i], { leftText: m.leftText, centreText: m.centreText, pageNo: i + 1, total });
+    if (m && m.content) stamp(pages[i], { leftText: m.leftText, pageNo: i + 1, total });
   }
 }
 
-// Render one validated report to {coverBuf, contentBuf} using the two-pass renderer
-// (full-bleed cover pass + reserved-zone content pass). Reused for single and combined export.
-async function renderCoverAndContent(browser, cleanReport) {
+// Render one validated report to a single content PDF buffer. The cover banner is part
+// of the content flow (top of page 1) and every page reserves the header/footer zones,
+// so one render pass is enough. Reused for single and combined export.
+async function renderContent(browser, cleanReport) {
   const token = crypto.randomBytes(16).toString("hex");
   let page;
   try {
     printJobs.set(token, cleanReport);
     page = await browser.newPage();
     await page.setViewport({ width: 1000, height: 1400, deviceScaleFactor: 2 });
-    // pass 1 — full-bleed COVER
-    await page.goto(`http://localhost:${PORT}/print.html?t=${token}&cover=1`, { waitUntil: "networkidle2", timeout: 60000 });
-    await page.waitForFunction("window.__RF_READY === true", { timeout: 30000 });
-    let err = await page.evaluate(() => window.__RF_ERROR || null);
-    if (err) throw new Error(err);
-    await new Promise(r => setTimeout(r, 350));
-    const coverBuf = await page.pdf({ format: "A4", printBackground: true, preferCSSPageSize: false, margin: { top: "0mm", bottom: "0mm", left: "0mm", right: "0mm" } });
-    // pass 2 — CONTENT with reserved header/footer zones
     await page.goto(`http://localhost:${PORT}/print.html?t=${token}`, { waitUntil: "networkidle2", timeout: 60000 });
     await page.waitForFunction("window.__RF_READY === true", { timeout: 30000 });
-    err = await page.evaluate(() => window.__RF_ERROR || null);
+    const err = await page.evaluate(() => window.__RF_ERROR || null);
     if (err) throw new Error(err);
     await new Promise(r => setTimeout(r, 350));
-    const contentBuf = await page.pdf({ format: "A4", printBackground: true, preferCSSPageSize: false, margin: { top: `${HEADER_MARGIN_MM}mm`, bottom: `${FOOTER_MARGIN_MM}mm`, left: "0mm", right: "0mm" } });
-    return { coverBuf, contentBuf };
+    return await page.pdf({ format: "A4", printBackground: true, preferCSSPageSize: false, margin: { top: `${HEADER_MARGIN_MM}mm`, bottom: `${FOOTER_MARGIN_MM}mm`, left: "0mm", right: "0mm" } });
   } finally {
     printJobs.delete(token);
     if (page) await page.close().catch(() => {});
   }
 }
 
-// Single-report PDF: cover + content, stamped with header/footer + Page X of Y.
-async function typesetPDF(coverBuf, contentBuf, r) {
+// Single-report PDF: cover banner + content, stamped with header/footer + Page X of Y.
+async function typesetPDF(contentBuf, r) {
   const out = await PDFDocument.create();
   const meta = [];
-  await addReportToDoc(out, meta, coverBuf, contentBuf, r);
+  await addReportToDoc(out, meta, contentBuf, r);
   await stampDoc(out, meta);
   return out.save();
 }
@@ -488,8 +471,8 @@ app.post("/api/pdf", auth("admin"), async (req, res) => {
     const { report: cleanReport, warnings } = validateReport(req.body.report);
     if (warnings.length) { console.warn("PDF validation warnings:", warnings.join("; ")); res.setHeader("X-Report-Warnings", encodeURIComponent(warnings.join("; "))); }
     const browser = await getBrowser();
-    const { coverBuf, contentBuf } = await renderCoverAndContent(browser, cleanReport);
-    const finalPdf = await typesetPDF(coverBuf, contentBuf, cleanReport);
+    const contentBuf = await renderContent(browser, cleanReport);
+    const finalPdf = await typesetPDF(contentBuf, cleanReport);
 
     const fbase = (cleanReport.bestPracticeName || cleanReport.title || "report").toLowerCase().replace(/[^\w\- ]+/g, "").trim().replace(/\s+/g, "_") || "report";
     res.setHeader("Content-Type", "application/pdf");
@@ -551,8 +534,8 @@ app.post("/api/pdf-all", auth("admin"), (req, res) => {
           && !clean.sdgs.length && !clean.environmentalImpacts.length && !clean.socialEconomicImpacts.length
           && !rfText(clean.technical.description) && !clean.performance.metrics.length;
         if (empty) { job.failed.push({ name: nm, error: "empty / invalid — skipped" }); continue; }
-        const { coverBuf, contentBuf } = await renderCoverAndContent(browser, clean);
-        await addReportToDoc(out, meta, coverBuf, contentBuf, clean); // buffers dropped after copy
+        const contentBuf = await renderContent(browser, clean);
+        await addReportToDoc(out, meta, contentBuf, clean); // buffer dropped after copy
         included++;
       } catch (e) {
         console.error("combined: submission failed:", nm, e.message);

@@ -57,8 +57,10 @@ window.RF_render = function(r, container){
   const dateStr = new Date().toLocaleDateString("en-GB",{year:"numeric",month:"long",day:"numeric"});
   const wm = `<div class="wm">RES<span>WATER</span><small>Interreg NEXT MED · Co-funded by the European Union</small></div>`;
 
-  const cover = `<div class="page cover">
-    <div class="coverHead">${wm}<div class="logoBox"><img src="/image/images.png" alt="RESWATER · Interreg NEXT MED"></div></div>
+  // Cover is a contained banner (~1/3 of the first page), NOT a full page. The report
+  // content flows directly beneath it on the same page. The header logo is stamped into
+  // the reserved top margin by the server, so the banner carries no logo of its own.
+  const cover = `<div class="coverBanner">
     <div class="coverBody">
       ${hasText(r.category)?`<span class="cat">${escT(r.category)}</span>`:""}
       <h1>${escT(r.bestPracticeName||r.title||r.projectName||"Untitled report")}</h1>
@@ -71,21 +73,33 @@ window.RF_render = function(r, container){
     <div class="brandline"><span>RESWATER · Technical report</span><span>${dateStr}</span></div>
   </div>`;
 
-  const facts = (r.keyFacts||[]).filter(f=>hasText(f.value));
-  if (facts.length)
-    DOC.push(sec("At a glance","Key Facts",
-      `<div class="kpiGrid">${facts.map(f=>`<div class="kpi"><div class="v">${escT(f.value)}${hasText(f.unit)?" "+escT(f.unit):""}</div>${hasText(f.label)?`<div class="l">${escT(f.label)}</div>`:""}</div>`).join("")}</div>`));
-
+  // ---- Ordered front matter: Description → At a Glance → Keywords → Images → Visual Documentation → Scientific Summary ----
+  // 1. Description
   if (hasText(r.description))
     DOC.push(sec("Description","Description",`<p>${escT(r.description)}</p>`));
 
-  if (hasText(r.executiveSummary))
-    DOC.push(secAB("Summary","Scientific Summary",`<p>${escT(r.executiveSummary)}</p>`));
+  // 2. At a Glance (Key Facts) — flows across pages; the heading stays glued to the first cards
+  const facts = (r.keyFacts||[]).filter(f=>hasText(f.value));
+  if (facts.length)
+    DOC.push(secAB("At a glance","Key Facts",
+      `<div class="kpiGrid">${facts.map(f=>`<div class="kpi"><div class="v">${escT(f.value)}${hasText(f.unit)?" "+escT(f.unit):""}</div>${hasText(f.label)?`<div class="l">${escT(f.label)}</div>`:""}</div>`).join("")}</div>`));
 
+  // 3. Keywords
   const keywords = (r.keywords||[]).filter(hasText);
   if (keywords.length)
     DOC.push(sec("Keywords","Keywords & Tags",
       `<div class="kwGrid">${keywords.map(k=>`<span class="kw">${escT(k)}</span>`).join("")}</div>`));
+
+  // 4. Images — a blank page (header/footer only) reserved for figures to be added later
+  DOC.push(`<div class="imgReserve"></div>`);
+
+  // 5. Visual Documentation
+  DOC.push(sec("Visual documentation","Visual Documentation",
+    `<p class="na">Reserved for figures, photographs and site imagery documenting the project.</p>`));
+
+  // 6. Scientific Summary
+  if (hasText(r.executiveSummary))
+    DOC.push(secAB("Summary","Scientific Summary",`<p>${escT(r.executiveSummary)}</p>`));
 
   const lat = num(r.location.lat), lng = num(r.location.lng);
   if (lat!==null && lng!==null)
@@ -197,8 +211,9 @@ window.RF_render = function(r, container){
       }).join("")}</ul>`));
 
   container.classList.add("rf-report");
-  container.innerHTML = cover + `<div class="page">
+  container.innerHTML = `<div class="page">
     <div class="docHeader">${wm}<img src="/image/images.png" alt="RESWATER · Interreg NEXT MED"></div>
+    ${cover}
     <div class="doc">${DOC.join("")}
       <div class="docFooter"><span>RESWATER · Interreg NEXT MED — Co-funded by the European Union</span><span>${dateStr}</span></div>
     </div>

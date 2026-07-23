@@ -13,13 +13,9 @@
   body{margin:0;background:#fff}
   .rf-report .page{max-width:none;margin:0;border-radius:0;box-shadow:none}
   /* the header logo + footer are stamped into reserved page margins by the server (pdf-lib),
-     so the in-content band/footer are not rendered here */
+     so the in-content band/footer are not rendered here. The cover banner IS part of the
+     content flow (top of page 1), so it is kept. */
   .rf-report .docHeader,.rf-report .docFooter{display:none}
-  /* content mode (default): hide the cover entirely so the content render is PURE content pages */
-  .rf-report .cover{display:none}
-  /* cover mode (?cover=1): show the cover full-bleed; the server keeps only its first page */
-  .coverfull .rf-report .cover{display:flex;flex-direction:column;justify-content:space-between;min-height:297mm}
-  .coverfull .rf-report .cover .coverBody{flex:1;display:flex;flex-direction:column;justify-content:center}
   /* let long sections flow across pages instead of leaving big gaps */
   .rf-report .rsec{break-inside:auto;page-break-inside:auto}
   /* NOTE: no @page margin here — the puppeteer `margin` option is the single source of truth
@@ -34,7 +30,6 @@
 (async function(){
   try{
     const params = new URLSearchParams(location.search);
-    if (params.get("cover")) document.documentElement.classList.add("coverfull");
     const token = params.get("t");
     const resp = await fetch("/api/print-data/" + token);
     if (!resp.ok) throw new Error("print data not found");
